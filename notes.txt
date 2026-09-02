@@ -1,0 +1,12 @@
+Input Nodes{
+    Speed
+    7 lines at front (distance from colission)
+}
+
+Output Nodes{
+    Accelerate
+    Turn left
+    Turn right
+    Gas + left
+    Gas + right
+}
