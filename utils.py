@@ -17,6 +17,7 @@ class Car:
         self.sensor = None
         self.distances = []
         self.net = net
+        self.checkpoints = []
 
         self.surface = pygame.Surface((w, h))
         self.surface.set_colorkey((0, 0, 0))
@@ -218,3 +219,42 @@ class Obstacle:
     def draw(self, screen):
         self.rect.center = pygame.mouse.get_pos()
         screen.blit(self.surface, self.rect)
+
+class Checkpoint:
+    def __init__(self, x, y, rot, w, h, ID, carList):
+        self.x, self.y = x, y
+        if rot == 0:
+            self.w, self.h = w, h
+        elif rot == 90:
+            self.w, self.h = h, w
+        self.id = ID
+        self.carList = carList
+        #print(self.carList)
+        #print(self.carList[0].x, self.carList[0].y)
+
+        self.surface = pygame.Surface((self.w, self.h))
+        self.surface.set_colorkey((0, 0, 0))
+        self.surface.fill("dark green")
+
+        self.rect = self.surface.get_rect()
+        self.rect.center = self.x, self.y
+        self.mask = pygame.mask.Mask((self.w, self.h))
+        self.mask.fill()
+
+    def draw(self, SCREEN):
+        SCREEN.blit(self.surface, self.rect)
+
+    def checkForCars(self, TOTALCHECKPOINTS):
+        for car in self.carList:
+            if self.rect.colliderect(car.rect):
+                if not car.checkpoints:
+                    if self.id == 0:
+                        car.checkpoints.append(self.id)
+                else:
+                    if car.checkpoints[-1] == (self.id -1) % TOTALCHECKPOINTS:
+                        car.checkpoints.append(self.id)
+                    elif car.checkpoints[-1] == self.id:
+                        pass
+                    else:
+                        car.checkpoints = []
+
