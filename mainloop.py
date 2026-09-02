@@ -180,7 +180,7 @@ def generationRunThrough(DURATION_LIMIT, AI_NUM, networks, genNum):
         elif time.perf_counter() - startTime > STAG_LIMIT:
             for car in livingCars:
                 distance_from_start = math.sqrt((car.x - startingX)**2 + (car.y - startingY)**2)
-                if distance_from_start < 50:
+                if distance_from_start < 100 and len(car.checkpoints) <= 1:
                     car.distSinceLastCheckpoint = 0
                     car.checkpoints = []
                     car.die()

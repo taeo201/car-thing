@@ -27,6 +27,6 @@ for i in range(GENERATIONS):
     for car in topCars:
         topNets.append(car.net)
 
-    networks = createNextGen(AI_NUM, topNets, ELITISM)
+    networks = createNextGen(AI_NUM, topNets, ELITISM, i, GENERATIONS)
 
 print(topNets[0])

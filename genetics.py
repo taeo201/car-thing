@@ -81,9 +81,12 @@ def mutateHelper(layer, strength, chance):
             biases[0][i] += mutation
     return weights, biases
 
-def mutate(net):
-    chance = 10 # 1/x chance of mutation
-    strength = 0.2
+def mutate(net, generation, max_generations):
+    #chance = 10 # 1/x chance of mutation
+    #strength = 0.1
+    progress = generation / max_generations
+    chance = int(10 + progress * 20)  # 1/10 to 1/30
+    strength = 0.2 - progress * 0.15  # 0.2 to 0.05
 
     layer1 = net.layer1
     weights1, biases1 = mutateHelper(layer1, strength, chance)
@@ -102,11 +105,15 @@ def mutate(net):
 
     return net
 
-def createNextGen(popSize, parents, ELITISM):
+def createNextGen(popSize, parents, ELITISM, generation, max_generations, random_ratio=0.1):
     children = parents[0:ELITISM]
+
+    num_random = int(popSize * random_ratio)
+    for _ in range(num_random):
+        children.append(TwoLayerNetwork(8, 15, 5))
 
     while len(children) < popSize:
         child = breed(np.random.choice(parents), np.random.choice(parents))
-        child = mutate(child)
+        child = mutate(child, generation, max_generations)
         children.append(child)
     return children
