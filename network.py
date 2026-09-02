@@ -48,6 +48,7 @@ class TwoLayerNetwork:
         self.output = self.activation2.output
         return self.activation2.output
 
+'''
 if __name__ == "__main__":
     nnfs.init()
 
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     X, y = spiral_data(100, 3)
 
 
-'''
+
 activation1 = Activation_ReLu()
 activation2 = Activation_Tanh()
 
@@ -71,23 +72,8 @@ activation2.forward(layer1.output)
 layer2.forward(activation2.output)
 activation2.forward(layer2.output)
 print(activation2.output)
-'''
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
 weights = [[0.2, 0.8, -0.5, 1.0], 
            [0.5, -0.91, 0.26, -0.5], 
            [-0.26, -0.27, 0.17, 0.87]]
