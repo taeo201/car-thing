@@ -3,7 +3,7 @@ from utils import *
 import math
 from network import *
 
-np.random.seed(0)
+#np.random.seed(0)
 
 pygame.init()
 X = 1280
@@ -19,6 +19,7 @@ MAX_ROTATION_SPEED = 5
 FRICTION_COEFF = 0.05
 ROT_FRICT_COEFF = 0.25
 TRACK_PATH = "Tracks\\Track1.png"
+AI_NUM = 50
 carWidth = 25
 carHeight = 50
 startingX, startingY = (155, 310)
@@ -26,12 +27,13 @@ player = Car(startingX, startingY, carWidth, carHeight, "blue")
 track = Track(TRACK_PATH)
 #track = Obstacle()
 
-net = TwoLayerNetwork(8, 15, 5)
+#net = TwoLayerNetwork(8, 15, 5)
 
 AI = Car(startingX, startingY, carWidth, carHeight, "green")
-options = [AI.accelerate, AI.accelLeft, AI.accelRight, AI.turnRight, AI.turnLeft]
 
-cars = [player, AI]
+cars = [player]
+for i in range(AI_NUM):
+    cars.append(Car(startingX, startingY, carWidth, carHeight, "green", TwoLayerNetwork(8,15,5)))
 
 sensors = []
 for car in cars:
@@ -75,24 +77,25 @@ while True:
         print(f"Sensor {i}: {distances}")
         car.distances = distances
 
+        if car != player:
+            options = [car.accelerate, car.accelLeft, car.accelRight, car.turnRight, car.turnLeft]
+            distances_input = [x / 100 for x in car.distances]
+            car.net.forward(distances_input + [car.speed/100])
+            output = car.net.output[0]
+            max = -100
+            maxIndex = -1
+            for j in range(len(output)):
+                if output[j] > max:
+                    max = output[j]
+                    maxIndex = j
+            AIChoice = options[maxIndex]
 
-    distances_input = AI.distances if AI.distances else [-1] * 7
-    net.forward(distances_input + [AI.speed])
-    output = net.output[0]
-    max = -100
-    maxIndex = -1
-    for i in range(len(output)):
-        if output[i] > max:
-            max = output[i]
-            maxIndex = i
-    AIChoice = options[maxIndex]
-
-    if AIChoice == AI.accelerate:
-        AIChoice(ACCELERATION)
-    elif AIChoice in [AI.turnLeft, AI.turnRight]:
-        AIChoice(ROTATION_ACCELERATION)
-    else:
-        AIChoice(ACCELERATION, ROTATION_ACCELERATION)
+            if AIChoice == car.accelerate:
+                AIChoice(ACCELERATION)
+            elif AIChoice in [car.turnLeft, car.turnRight]:
+                AIChoice(ROTATION_ACCELERATION)
+            else:
+                AIChoice(ACCELERATION, ROTATION_ACCELERATION)
 
     #player.updatePosition()
     track.draw(screen)

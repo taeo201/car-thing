@@ -2,7 +2,7 @@ import pygame
 import math
 
 class Car:
-    def __init__(self, x, y, w, h, colour, simple=True):
+    def __init__(self, x, y, w, h, colour, net=None, simple=True):
         self.x = x
         self.y = y
         self.w = w
@@ -16,6 +16,7 @@ class Car:
         self.simple = simple
         self.sensor = None
         self.distances = []
+        self.net = net
 
         self.surface = pygame.Surface((w, h))
         self.surface.set_colorkey((0, 0, 0))
