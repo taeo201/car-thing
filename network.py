@@ -6,6 +6,10 @@ class Layer_Dense:
     def __init__(self, n_inputs, n_neurons):
         self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
         self.biases = np.zeros((1, n_neurons))
+
+    def __str__(self):
+        return f"[{self.weights}, {self.biases}]"
+    
     def forward(self, inputs):
         self.output = np.dot(inputs, self.weights) + self.biases
 
@@ -29,6 +33,11 @@ class TwoLayerNetwork:
         self.activation1 = Activation_ReLu()
         self.activation2 = Activation_Tanh()
 
+    def __str__(self):
+        return f"[{self.layer1}, {self.layer2}, {self.outputLayer}]"
+
+    
+    
     def forward(self, X):
         self.layer1.forward(X)
         self.activation1.forward(self.layer1.output)

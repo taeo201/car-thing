@@ -14,6 +14,8 @@ screen = pygame.display.set_mode((X, Y))
 clock = pygame.time.Clock()
 FPS = 60
 
+
+STAG_LIMIT = 3 #seconds before killing idles
 MAX_SPEED = 5
 ACCELERATION = 0.5
 ROTATION_ACCELERATION = 1
@@ -21,10 +23,14 @@ MAX_ROTATION_SPEED = 5
 FRICTION_COEFF = 0.05
 ROT_FRICT_COEFF = 0.25
 TRACK_PATH = "Tracks\\Track1.png"
+
+font = pygame.font.SysFont("Arial", 36)
+
 carWidth = 25
 carHeight = 50
 startingX, startingY = (155, 310)
 track = Track(TRACK_PATH)
+
 
 checkpoint_locations = [(155, 250, 0), 
                         (283, 90, 90),
@@ -39,16 +45,21 @@ checkpoint_locations = [(155, 250, 0),
 TOTALCHECKPOINTS = len(checkpoint_locations)
 checkpoints = []
 
-def generationRunThrough(DURATION_LIMIT, AI_NUM):
-    player = Car(startingX, startingY, carWidth, carHeight, "blue")
-    livingCars = [player]
-    cars = [player]
+def generationRunThrough(DURATION_LIMIT, AI_NUM, networks, genNum):
+    #player = Car(startingX, startingY, carWidth, carHeight, "blue")
+    prevCheck = time.perf_counter()
+    player = None
+    livingCars = []
+    cars = []
     for i in range(AI_NUM):
-        newCar = Car(startingX, startingY, carWidth, carHeight, "green", TwoLayerNetwork(8,15,5))
+        if i == 0:
+            newCar = Car(startingX, startingY, carWidth, carHeight, "yellow", networks[i])
+        else:
+            newCar = Car(startingX, startingY, carWidth, carHeight, "green", networks[i])
         cars.append(newCar)
         livingCars.append(newCar)
 
-    player.die()
+    #player.die()
     sensors = []
     for car in cars:
         sensors.append(Sensor(car, track, 7))
@@ -66,12 +77,13 @@ def generationRunThrough(DURATION_LIMIT, AI_NUM):
         # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
+                #print(cars[0].net)
+                return "QUIT"
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(event.pos)
 
         keys = pygame.key.get_pressed()
-
+        '''
         if keys[pygame.K_a]:
             player.turnLeft(ROTATION_ACCELERATION)
         if keys[pygame.K_d]:
@@ -85,10 +97,16 @@ def generationRunThrough(DURATION_LIMIT, AI_NUM):
         if keys[pygame.K_SPACE]:
             for car in cars:
                 print(car.checkpoints)
-                car.reset(startingX, startingY)
+                car.reset(startingX, startingY)'''
+        if keys[pygame.K_SPACE]:
+            for car in livingCars:
+                car.die()
+            cont = False
         if keys[pygame.K_ESCAPE]:
-            print(player.x, player.y)
-            pygame.quit()
+            #print(player.x, player.y)
+            #print(cars[0].net)
+            #pygame.quit()
+            return "QUIT"
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("light gray")
@@ -135,9 +153,13 @@ def generationRunThrough(DURATION_LIMIT, AI_NUM):
                 if track.mask.overlap(car.mask, (offset_x, offset_y)):
                     livingCars.remove(car)
                     car.die()
-                    if not livingCars:
-                        cont = False
             car.draw(screen)
+        for car in livingCars[::-1]:
+            car.draw(screen)
+
+        text_surface = font.render(f"Generation {genNum}", True, (255, 255, 255))
+        screen.blit(text_surface, (1000, 50))
+
 
         '''
         if player.alive:
@@ -153,8 +175,27 @@ def generationRunThrough(DURATION_LIMIT, AI_NUM):
         pygame.display.flip()
 
         clock.tick(FPS)  # limits FPS
-
         if time.perf_counter() - startTime > DURATION_LIMIT:
             cont = False
+        elif time.perf_counter() - startTime > STAG_LIMIT:
+            for car in livingCars:
+                distance_from_start = math.sqrt((car.x - startingX)**2 + (car.y - startingY)**2)
+                if distance_from_start < 50:
+                    car.distSinceLastCheckpoint = 0
+                    car.checkpoints = []
+                    car.die()
+                    livingCars.remove(car)
+        timer = time.perf_counter()
+        if timer - prevCheck >= STAG_LIMIT:
+            prevCheck = timer
+            for car in livingCars:
+                if math.sqrt((car.x - car.prevPos[0])**2 + (car.y - car.prevPos[1])**2) < 100:
+                    car.distSinceLastCheckpoint = 0
+                    car.die()
+                    livingCars.remove(car)
+                car.prevPos = (car.x, car.y)
+        if not livingCars:
+            cont = False
+
 
     return cars

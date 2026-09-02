@@ -18,10 +18,14 @@ class Car:
         self.distances = []
         self.net = net
         self.checkpoints = []
+        self.distSinceLastCheckpoint = 0
+        self.fitness = 0
+
+        self.prevPos = (x, y)
 
         self.surface = pygame.Surface((w, h))
         self.surface.set_colorkey((0, 0, 0))
-        self.surface.fill(colour)
+        self.surface.fill(self.colour)
 
         self.rect = self.surface.get_rect()
         self.mask = pygame.mask.Mask((w, h))
@@ -63,6 +67,9 @@ class Car:
         self.y -= ySpeed
         self.x -= xSpeed
 
+        totalSpeed = math.sqrt(xSpeed**2 + ySpeed**2)
+        self.distSinceLastCheckpoint += totalSpeed
+
         rotated_surface = pygame.transform.rotate(self.surface, self.rotation)
         self.rect = rotated_surface.get_rect()
         self.rect.center = (self.x, self.y)
@@ -86,6 +93,7 @@ class Car:
         self.rotationSpeed += ROTATION_ACCELERATION * math.copysign(1, self.speed)
 
     def draw(self, screen):
+        self.surface.fill(self.colour)
         rotated_surface = pygame.transform.rotate(self.surface, self.rotation)
         screen.blit(rotated_surface, self.rect)
 
@@ -98,6 +106,7 @@ class Car:
 
     def die(self):
         self.alive = False
+        self.colour = "dark gray"
 
     def turnLeft(self, ROTATION_ACCELERATION):
         if self.alive:
@@ -247,14 +256,18 @@ class Checkpoint:
     def checkForCars(self, TOTALCHECKPOINTS):
         for car in self.carList:
             if self.rect.colliderect(car.rect):
+                car.distSinceLastCheckpoint = 0
                 if not car.checkpoints:
                     if self.id == 0:
                         car.checkpoints.append(self.id)
+                    else:
+                        car.die()
                 else:
                     if car.checkpoints[-1] == (self.id -1) % TOTALCHECKPOINTS:
                         car.checkpoints.append(self.id)
                     elif car.checkpoints[-1] == self.id:
                         pass
                     else:
-                        car.checkpoints = []
+                        car.die()
+                        #car.checkpoints = []
 
